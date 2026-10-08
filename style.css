@@ -1,0 +1,57 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+h1 {
+  text-align: center;
+}
+.players {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.p1,
+.p2 {
+  border: 1px solid black;
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+.p1 {
+  background-color: bisque;
+}
+
+.p2 {
+  background-color: coral;
+}
+.boxes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 90vw;
+  max-width: 500px;
+  margin: 10px auto;
+}
+
+.box {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+
+  border: 2px solid black;
+  padding: 4px;
+}
+
+.box.active{
+  border: 3px solid red;
+}
+
+button {
+  width: 100%;
+  height: 40px;
+  font-size: 16px;
+  cursor: pointer;
+}
