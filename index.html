@@ -10,11 +10,22 @@
 
 <body>
     <h1>Tic Tac Toe</h1>
+    <div class="mode-toggle">
+        <label class="switch">
+            <input type="checkbox" id="threePlayerToggle">
+            <span class="slider"></span> </label>
+        <span id="em">✌️</span>
+        <span id="em2">🤟</span>
+    </div>
+
+
     <div class="container">
         <div class="players">
 
-            <div class="p1">Player:X</div>
-            <div class="p2">Player:O</div>
+            <div id="playerX" class="player active ">Player:X</div>
+            <button id="restart">Restart Game</button>
+            <div id="playerO" class="player ">Player:O</div>
+
         </div>
 
 
@@ -110,7 +121,7 @@
             <div class="box" data-board="9">
                 <button class="cell" data-cell="1"></button>
                 <button class="cell" data-cell="2"></button>
-                <button class="cell"  data-cell="3"></button>
+                <button class="cell" data-cell="3"></button>
                 <button class="cell" data-cell="4"></button>
                 <button class="cell" data-cell="5"></button>
                 <button class="cell" data-cell="6"></button>
@@ -118,8 +129,9 @@
                 <button class="cell" data-cell="8"></button>
                 <button class="cell" data-cell="9"></button>
             </div>
-        </div>
 
+        </div>
+        <h2 id="result"></h2>
     </div>
 
     <script src="script.js"></script>
