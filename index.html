@@ -20,11 +20,26 @@
 
 
     <div class="container">
+
+        <div id="onlineControls">
+            <button id="createRoom">Create Room</button>
+
+            <input type="text" id="roomCode" placeholder="Enter room code" maxlength="4">
+
+            <button id="joinRoom">Join Room</button>
+
+            <p id="onlineStatus">Play online with a friend!</p>
+        </div>
+
         <div class="players">
 
             <div id="playerX" class="player active ">Player:X</div>
-            <button id="restart">Restart Game</button>
             <div id="playerO" class="player ">Player:O</div>
+            <div id="playerN" class="player ">Player:N</div>
+            <button id="restart">Restart Game</button>
+
+
+
 
         </div>
 
@@ -134,7 +149,7 @@
         <h2 id="result"></h2>
     </div>
 
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 
 </html>

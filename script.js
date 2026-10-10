@@ -1,3 +1,241 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+import {
+  ref,
+  set,
+  get,
+  getDatabase,
+  onValue,
+} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyCm9lvKkghX4vNuCn1FyXA_ZQB08uZlGQU",
+  authDomain: "tic-tac-toe-byn.firebaseapp.com",
+  databaseURL:
+    "https://tic-tac-toe-byn-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "tic-tac-toe-byn",
+  storageBucket: "tic-tac-toe-byn.firebasestorage.app",
+  messagingSenderId: "898321852621",
+  appId: "1:898321852621:web:5066d0de97605c7e9be184",
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const createRoomBtn = document.querySelector("#createRoom");
+const roomCodeInput = document.querySelector("#roomCode");
+const onlineStatus = document.querySelector("#onlineStatus");
+
+let currentRoom = null;
+
+function listenToRoom(roomCode) {
+  const roomRef = ref(db, `rooms/${roomCode}`);
+
+  onValue(roomRef, (snapshot) => {
+    if (!snapshot.exists()) {
+      return;
+    }
+
+    const room = snapshot.val();
+    const gameState = room.gameState;
+    if (gameState.currentPlayer) {
+      currentp = gameState.currentPlayer;
+    }
+    if (!gameState) return;
+
+    currentp = gameState.currentPlayer || "X";
+    currentBoard = gameState.currentBoard ?? undefined;
+    wonBoards = gameState.wonBoards || [];
+    mainBoard = gameState.mainBoard || ["", "", "", "", "", "", "", "", ""];
+    finishedBoards = gameState.finishedBoards || [];
+    gameOver = gameState.gameOver || false;
+    document
+      .querySelector("#playerX")
+      .classList.toggle("active", currentp === "X");
+    document
+      .querySelector("#playerO")
+      .classList.toggle("active", currentp === "O");
+    document
+      .querySelector("#playerN")
+      .classList.toggle("active", currentp === "N");
+
+    // 1. Draw the marks received from Firebase
+    document.querySelectorAll(".box").forEach((board) => {
+      const boardNum = board.dataset.board;
+
+      board.querySelectorAll(".cell").forEach((cell) => {
+        const cellNum = cell.dataset.cell;
+        const mark = gameState.board?.[boardNum]?.[cellNum];
+
+        cell.textContent = mark || "";
+
+        cell.classList.remove("mark-x", "mark-o", "mark-n");
+
+        if (mark === "X") {
+          cell.classList.add("mark-x");
+        } else if (mark === "O") {
+          cell.classList.add("mark-o");
+        } else if (mark === "N") {
+          cell.classList.add("mark-n");
+        }
+      });
+    });
+
+    // 2. Restore won-board styling and disabled cells
+    document.querySelectorAll(".box").forEach((board) => {
+      const boardNum = Number(board.dataset.board);
+
+      board.classList.toggle("won", wonBoards.includes(boardNum));
+
+      board.querySelectorAll(".cell").forEach((cell) => {
+        cell.disabled = wonBoards.includes(boardNum) || gameOver;
+      });
+    });
+
+    // Restore the required next board
+    document.querySelectorAll(".box").forEach((board) => {
+      board.classList.remove("active");
+    });
+
+    //Display the winner or draw message
+    if (gameOver) {
+  let winnerFound = false;
+
+  for (const combination of winner) {
+    const a = mainBoard[combination[0] - 1];
+    const b = mainBoard[combination[1] - 1];
+    const c = mainBoard[combination[2] - 1];
+
+    if (a && a === b && a === c) {
+      result.textContent = a + " wins the game!";
+      winnerFound = true;
+      break;
+    }
+  }
+
+  if (!winnerFound) {
+    result.textContent = "It's a draw!";
+  }
+}
+
+    if (currentBoard && !gameOver) {
+      const nextBoard = document.querySelector(
+        `[data-board="${currentBoard}"]`,
+      );
+
+      if (
+        nextBoard &&
+        !wonBoards.includes(currentBoard) &&
+        !finishedBoards.includes(currentBoard)
+      ) {
+        nextBoard.classList.add("active");
+      }
+    }
+  });
+}
+
+async function saveGameState() {
+  if (!currentRoom) return;
+
+  const boardState = {};
+
+  document.querySelectorAll(".box").forEach((board) => {
+    const boardNum = board.dataset.board;
+    boardState[boardNum] = {};
+
+    board.querySelectorAll(".cell").forEach((cell) => {
+      const cellNum = cell.dataset.cell;
+      boardState[boardNum][cellNum] = cell.textContent;
+    });
+  });
+
+  await set(ref(db, `rooms/${currentRoom}/gameState`), {
+    board: boardState,
+    currentPlayer: currentp,
+    currentBoard: currentBoard ?? null,
+    wonBoards: wonBoards,
+    mainBoard: mainBoard,
+    finishedBoards: finishedBoards,
+    gameOver: gameOver,
+  });
+}
+
+function generateRoomCode() {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+}
+
+createRoomBtn.addEventListener("click", async () => {
+  try {
+    const roomCode = generateRoomCode();
+    const roomRef = ref(db, `rooms/${roomCode}`);
+    const totalPlayers = threePlayerToggle.checked ? 3 : 2;
+
+    await set(roomRef, {
+      totalPlayers: totalPlayers,
+      currentPlayer: "X",
+      status: "waiting",
+      players: {
+        X: true,
+        O: false,
+        N: false,
+      },
+      createdAt: Date.now(),
+    });
+
+    currentRoom = roomCode;
+    listenToRoom(roomCode);
+
+    roomCodeInput.value = roomCode;
+    onlineStatus.textContent = `Room created! Share code: ${roomCode}`;
+  } catch (error) {
+    console.error(error);
+    onlineStatus.textContent = "Couldn't create room. Check the console.";
+  }
+});
+
+const joinRoomBtn = document.querySelector("#joinRoom");
+
+joinRoomBtn.addEventListener("click", async () => {
+  const roomCode = roomCodeInput.value.trim();
+
+  if (!/^\d{4}$/.test(roomCode)) {
+    onlineStatus.textContent = "Enter a valid 4-digit room code.";
+    return;
+  }
+
+  try {
+    const roomRef = ref(db, `rooms/${roomCode}`);
+    const snapshot = await get(roomRef);
+
+    if (!snapshot.exists()) {
+      onlineStatus.textContent = "Room not found. Check the code.";
+      return;
+    }
+
+    const room = snapshot.val();
+    console.log(room);
+
+    if (room.status !== "waiting") {
+      onlineStatus.textContent = "This room is not waiting for a player.";
+      return;
+    }
+
+    let assignedPlayer;
+    if (!room.players.O) {
+      assignedPlayer = "O";
+    } else if (room.totalPlayers === 3 && !room.players.N) {
+      assignedPlayer = "N";
+    } else {
+      onlineStatus.textContent = "Room is already full.";
+      return;
+    }
+    currentRoom = roomCode;
+
+    await set(ref(db, `rooms/${roomCode}/players/${assignedPlayer}`), true); //update in firebase player name
+    listenToRoom(roomCode);
+    onlineStatus.textContent = `Joined as Player ${assignedPlayer}!`;
+  } catch (error) {
+    console.error(error);
+    onlineStatus.textContent = "Couldn't join room. Check the console.";
+  }
+});
+
 const cells = document.querySelectorAll(".cell");
 const result = document.querySelector("#result");
 const restartBtn = document.querySelector("#restart");
@@ -12,7 +250,7 @@ let finishedBoards = []; // won or full without won
 
 cells.forEach((cell) => {
   //added loop bcz we have queryselectorAll a array of cells
-  cell.addEventListener("click", () => {
+  cell.addEventListener("click", async () => {
     //and evenlistner can work on only one element
     if (gameOver) return; // Stop if the game has ended
     const cellNum = Number(cell.dataset.cell);
@@ -36,21 +274,34 @@ cells.forEach((cell) => {
     if (wonBoards.includes(Number(boardNum))) return; //winner Board block
 
     cell.textContent = currentp;
-    cell.classList.add(currentp === "X" ? "mark-x" : "mark-o");
+    cell.classList.add(
+      currentp === "X" ? "mark-x" : currentp === "O" ? "mark-o" : "mark-n",
+    );
     checkWinner(cell.parentElement);
     checkMainWinner(); // checks overall main winner after each move
     checkDraw(); // Check whether the game ended in a draw
 
-    if (gameOver) return; // dont switch if gameover
+    if (gameOver) {
+      await saveGameState();
+      return;
+    } // dont switch if gameover
 
     //if(currentp==="X"){ currentp="O";} else{currentp="X";} ternary op: better
-    currentp = currentp === "X" ? "O" : "X"; // condition ? truecode : elseCode
+
+    const totalPlayers = threePlayerToggle.checked ? 3 : 2; // condition ? truecode : elseCode
+    const currentIndex = players.indexOf(currentp);
+
+    currentp = players[(currentIndex + 1) % totalPlayers]; //%totalPlayer work as remainder calculation
+    //first time 1/3 remainder will 1, 2nd time  2/3 R=2, but third time 3/3 R=0, so cyclewill repeat
     document
       .querySelector("#playerX") //on highligh if X turn in X player
       .classList.toggle("active", currentp === "X");
     document
       .querySelector("#playerO") //on highligh if O turn in O player
       .classList.toggle("active", currentp === "O");
+    document
+      .querySelector("#playerN") //on highligh if N turn in N player
+      .classList.toggle("active", currentp === "N");
 
     currentBoard = cellNum; //Next board
     document.querySelectorAll(".box").forEach((b) => {
@@ -67,6 +318,7 @@ cells.forEach((cell) => {
     } else {
       nextBoard.classList.add("active");
     }
+    await saveGameState();
   });
 });
 
@@ -100,9 +352,7 @@ function checkWinner(board) {
         wonBoards.push(boardNum); //declare this board is won by someone
         mainBoard[boardNum - 1] = a.textContent; // set winner symbol in mainBoard
         // Animate the player who won this small board
-        const winnerPlayer = document.querySelector(
-          a.textContent === "X" ? "#playerX" : "#playerO",
-        );
+        const winnerPlayer = document.querySelector(`#player${a.textContent}`);
 
         winnerPlayer.classList.remove("win-animation");
         winnerPlayer.classList.add("win-animation");
@@ -135,6 +385,10 @@ function checkMainWinner() {
     if (a !== "" && a === b && a === c) {
       result.textContent = a + " wins the game!";
       gameOver = true; // Prevent any more moves
+      const winnerPlayer = document.querySelector(`#player${a}`);
+
+      winnerPlayer.classList.remove("win-main-animation");
+      winnerPlayer.classList.add("win-main-animation");
       return;
     }
   }
@@ -150,7 +404,7 @@ restartBtn.addEventListener("click", () => {
   cells.forEach((cell) => {
     cell.textContent = "";
     cell.disabled = false;
-    cell.classList.remove("mark-x", "mark-o");
+    cell.classList.remove("mark-x", "mark-o", "mark-n");
   });
 
   currentp = "X";
@@ -168,4 +422,5 @@ restartBtn.addEventListener("click", () => {
 
   document.querySelector("#playerX").classList.add("active");
   document.querySelector("#playerO").classList.remove("active");
+  document.querySelector("#playerN").classList.remove("active");
 });
