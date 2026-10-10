@@ -400,7 +400,7 @@ function checkDraw() {
     gameOver = true;
   }
 }
-restartBtn.addEventListener("click", () => {
+restartBtn.addEventListener("click", async () => {
   cells.forEach((cell) => {
     cell.textContent = "";
     cell.disabled = false;
@@ -423,4 +423,5 @@ restartBtn.addEventListener("click", () => {
   document.querySelector("#playerX").classList.add("active");
   document.querySelector("#playerO").classList.remove("active");
   document.querySelector("#playerN").classList.remove("active");
+  await saveGameState();
 });

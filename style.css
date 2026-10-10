@@ -356,6 +356,11 @@ h1 {
     padding: 8px 12px;
     font-size: 0.8rem;
   }
+
+  #result {
+    padding: 6px 15px;
+
+  }
 }
 
 #playerN {
