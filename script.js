@@ -5,6 +5,8 @@ import {
   get,
   getDatabase,
   onValue,
+  push,
+  onChildAdded,
 } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 const firebaseConfig = {
   apiKey: "AIzaSyCm9lvKkghX4vNuCn1FyXA_ZQB08uZlGQU",
@@ -22,7 +24,14 @@ const createRoomBtn = document.querySelector("#createRoom");
 const roomCodeInput = document.querySelector("#roomCode");
 const onlineStatus = document.querySelector("#onlineStatus");
 
+const chatInput = document.querySelector("#chatInput");
+const sendChat = document.querySelector("#sendChat");
+const chatMessages = document.querySelector("#chatMessages");
+const chatBadge = document.querySelector("#chatBadge");
+let reactionListenerStartedAt = Date.now();
+
 let currentRoom = null;
+let myPlayer = null;
 
 function listenToRoom(roomCode) {
   const roomRef = ref(db, `rooms/${roomCode}`);
@@ -33,10 +42,9 @@ function listenToRoom(roomCode) {
     }
 
     const room = snapshot.val();
+    if (!room) return;
     const gameState = room.gameState;
-    if (gameState.currentPlayer) {
-      currentp = gameState.currentPlayer;
-    }
+
     if (!gameState) return;
 
     currentp = gameState.currentPlayer || "X";
@@ -95,24 +103,24 @@ function listenToRoom(roomCode) {
 
     //Display the winner or draw message
     if (gameOver) {
-  let winnerFound = false;
+      let winnerFound = false;
 
-  for (const combination of winner) {
-    const a = mainBoard[combination[0] - 1];
-    const b = mainBoard[combination[1] - 1];
-    const c = mainBoard[combination[2] - 1];
+      for (const combination of winner) {
+        const a = mainBoard[combination[0] - 1];
+        const b = mainBoard[combination[1] - 1];
+        const c = mainBoard[combination[2] - 1];
 
-    if (a && a === b && a === c) {
-      result.textContent = a + " wins the game!";
-      winnerFound = true;
-      break;
+        if (a && a === b && a === c) {
+          result.textContent = a + " wins the game!";
+          winnerFound = true;
+          break;
+        }
+      }
+
+      if (!winnerFound) {
+        result.textContent = "It's a draw!";
+      }
     }
-  }
-
-  if (!winnerFound) {
-    result.textContent = "It's a draw!";
-  }
-}
 
     if (currentBoard && !gameOver) {
       const nextBoard = document.querySelector(
@@ -177,12 +185,23 @@ createRoomBtn.addEventListener("click", async () => {
       },
       createdAt: Date.now(),
     });
+    document.querySelector("#playerX").classList.add("active");
+    document.querySelector("#playerO").classList.remove("active");
+    document.querySelector("#playerN").classList.remove("active");
 
     currentRoom = roomCode;
+    myPlayer = "X"; // This device controls Player X
     listenToRoom(roomCode);
+    listenToChat(roomCode);
+    reactionListenerStartedAt = Date.now();
+    listenToReactions(roomCode);
 
     roomCodeInput.value = roomCode;
     onlineStatus.textContent = `Room created! Share code: ${roomCode}`;
+    document.querySelector("#onlineControls").style.display = "none";
+    document.querySelector(".code").style.display = "block ";
+    document.querySelector(".code").textContent =
+      `Room created! Share code: ${roomCode}`;
   } catch (error) {
     console.error(error);
     onlineStatus.textContent = "Couldn't create room. Check the console.";
@@ -223,13 +242,24 @@ joinRoomBtn.addEventListener("click", async () => {
       assignedPlayer = "N";
     } else {
       onlineStatus.textContent = "Room is already full.";
+
       return;
     }
     currentRoom = roomCode;
 
     await set(ref(db, `rooms/${roomCode}/players/${assignedPlayer}`), true); //update in firebase player name
+    myPlayer = assignedPlayer; // This device controls O or N
+
     listenToRoom(roomCode);
+    listenToChat(roomCode);
+    reactionListenerStartedAt = Date.now();
+    listenToReactions(roomCode);
+
     onlineStatus.textContent = `Joined as Player ${assignedPlayer}!`;
+    document.querySelector("#onlineControls").style.display = "none";
+    document.querySelector(".code").style.display = "block ";
+    document.querySelector(".code").textContent =
+      `Joined as Player ${assignedPlayer}!`;
   } catch (error) {
     console.error(error);
     onlineStatus.textContent = "Couldn't join room. Check the console.";
@@ -251,8 +281,11 @@ let finishedBoards = []; // won or full without won
 cells.forEach((cell) => {
   //added loop bcz we have queryselectorAll a array of cells
   cell.addEventListener("click", async () => {
+    document.querySelector(".code").textContent = "";
+    document.querySelector(".code").style.display = "none";
     //and evenlistner can work on only one element
     if (gameOver) return; // Stop if the game has ended
+    if (currentRoom && myPlayer !== currentp) return; // in offline  before && CR will false so it ends condition wont run return
     const cellNum = Number(cell.dataset.cell);
     const boardNum = cell.parentElement.dataset.board; //Get  parent means box's Number
     if (currentBoard) {
@@ -389,6 +422,10 @@ function checkMainWinner() {
 
       winnerPlayer.classList.remove("win-main-animation");
       winnerPlayer.classList.add("win-main-animation");
+      document.querySelector("#playerX").classList.remove("active");
+      document.querySelector("#playerO").classList.remove("active");
+      document.querySelector("#playerN").classList.remove("active");
+
       return;
     }
   }
@@ -420,8 +457,135 @@ restartBtn.addEventListener("click", async () => {
     board.classList.remove("won"); // Clear the won-board style
   });
 
-  document.querySelector("#playerX").classList.add("active");
   document.querySelector("#playerO").classList.remove("active");
   document.querySelector("#playerN").classList.remove("active");
   await saveGameState();
 });
+const input = document.querySelector("#onlineControls");
+document.querySelector(".online").addEventListener("click", () => {
+  input.style.display = "grid";
+  document.querySelector("#playerX").classList.remove("active");
+});
+
+// Get the chat elements
+const chatToggle = document.querySelector("#chatToggle");
+const chatPanel = document.querySelector("#chatPanel");
+const closeChat = document.querySelector("#closeChat");
+
+// Get the emoji elements
+const emojiToggle = document.querySelector("#emojiToggle");
+const emojiPanel = document.querySelector("#emojiPanel");
+const liveReaction = document.querySelector("#liveReaction");
+
+// Open and close chat
+chatToggle.addEventListener("click", () => {
+  if (chatPanel.classList.contains("open")) {
+    chatBadge.classList.remove("show");
+  }
+  chatPanel.classList.toggle("open");
+});
+
+closeChat.addEventListener("click", () => {
+  chatPanel.classList.remove("open");
+});
+
+// Open and close emoji panel on phones
+emojiToggle.addEventListener("click", () => {
+  emojiPanel.classList.toggle("open");
+  chatPanel.classList.remove("open");
+});
+
+//Add the message-sending code
+sendChat.addEventListener("click", async () => {
+  const message = chatInput.value.trim();
+
+  if (!message || !currentRoom || !myPlayer) return;
+
+  await push(ref(db, `rooms/${currentRoom}/messages`), {
+    player: myPlayer,
+    text: message,
+    createdAt: Date.now(),
+  });
+
+  chatInput.value = ""; //clears input box after send(saved)
+});
+//allows to send with enter key
+chatInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    sendChat.click();
+  }
+});
+
+//msg  Listner
+function listenToChat(roomCode) {
+  const messagesRef = ref(db, `rooms/${roomCode}/messages`);
+
+  onValue(messagesRef, (snapshot) => {
+    chatMessages.innerHTML = "";
+
+    const chatIsClosed = !chatPanel.classList.contains("open");
+    if (chatIsClosed && snapshot.exists()) {
+      chatBadge.classList.add("show");
+    }
+
+    snapshot.forEach((childSnapshot) => {
+      const message = childSnapshot.val();
+
+      const messageElement = document.createElement("div");
+      messageElement.classList.add("chat-message");
+
+      messageElement.textContent = `${message.player}: ${message.text}`;
+
+      chatMessages.appendChild(messageElement);
+    });
+
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  });
+}
+
+//for emoji
+document.querySelectorAll(".emoji-btn").forEach((button) => {
+  button.addEventListener("click", async () => {
+    const emoji = button.textContent;
+
+    if (!currentRoom || !myPlayer) return;
+
+    await push(ref(db, `rooms/${currentRoom}/messages`), {
+      player: myPlayer,
+      text: emoji,
+      createdAt: Date.now(),
+    });
+
+    await push(ref(db, `rooms/${currentRoom}/reactions`), {
+      player: myPlayer,
+      emoji: emoji,
+      createdAt: Date.now(),
+    });
+    showLiveReaction(emoji);
+  });
+});
+
+function showLiveReaction(emoji) {
+  liveReaction.textContent = emoji;
+  liveReaction.classList.remove("show");
+
+  void liveReaction.offsetWidth; // Restarts animation for repeated emojis
+
+  liveReaction.classList.add("show");
+}
+
+function listenToReactions(roomCode) {
+  const reactionsRef = ref(db, `rooms/${roomCode}/reactions`);
+
+  onChildAdded(reactionsRef, (snapshot) => {
+    const reaction = snapshot.val();
+
+    // Ignore reactions sent before this listener started
+    if (reaction.createdAt < reactionListenerStartedAt) return;
+
+    // Don't replay our own reaction; we already show it locally
+    if (reaction.player === myPlayer) return;
+
+    showLiveReaction(reaction.emoji);
+  });
+}

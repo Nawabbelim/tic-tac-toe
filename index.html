@@ -16,17 +16,20 @@
             <span class="slider"></span> </label>
         <span id="em">✌️</span>
         <span id="em2">🤟</span>
+        <button class="online">Play online</button>
     </div>
 
+    <span class="code" style="display: none;"></span>
 
     <div class="container">
 
-        <div id="onlineControls">
+        <div id="onlineControls" style="display: none;">
             <button id="createRoom">Create Room</button>
 
-            <input type="text" id="roomCode" placeholder="Enter room code" maxlength="4">
-
-            <button id="joinRoom">Join Room</button>
+            <div class="join-row">
+                <input type="text" id="roomCode" placeholder="Enter room code" maxlength="4">
+                <button id="joinRoom">Join Room</button>
+            </div>
 
             <p id="onlineStatus">Play online with a friend!</p>
         </div>
@@ -37,12 +40,50 @@
             <div id="playerO" class="player ">Player:O</div>
             <div id="playerN" class="player ">Player:N</div>
             <button id="restart">Restart Game</button>
-
-
-
-
         </div>
 
+
+        <!-- Chat toggle button -->
+        <button id="chatToggle">
+            💬 Chat
+            <span id="chatBadge"></span>
+        </button>
+
+        <!-- Chat panel -->
+        <div id="chatPanel" class="chat-panel">
+            <div class="chat-header">
+                <h3>Live Chat</h3>
+                <button id="closeChat">✕</button>
+            </div>
+
+            <div id="chatMessages" class="chat-messages"></div>
+
+            <div class="chat-input">
+                <input type="text" id="chatInput" placeholder="Type a message..." maxlength="300">
+                <button id="sendChat">➤</button>
+            </div>
+        </div>
+
+        <!-- Emoji reaction panel -->
+        <div id="emojiPanel" class="emoji-panel">
+            <button class="emoji-btn">😂</button>
+            <button class="emoji-btn">❤️</button>
+            <button class="emoji-btn">🔥</button>
+            <button class="emoji-btn">👍</button>
+            <button class="emoji-btn">😎</button>
+            <button class="emoji-btn">😮</button>
+            <button class="emoji-btn">😭</button>
+            <button class="emoji-btn">👏</button>
+            <button class="emoji-btn">💀</button>
+        </div>
+
+        <!-- Emoji toggle for phones -->
+        <button id="emojiToggle">😀</button>
+
+        
+        <!-- Live reaction overlay -->
+        <div id="liveReaction"></div>
+        
 
         <div class="boxes">
             <div class="box" data-board="1">
