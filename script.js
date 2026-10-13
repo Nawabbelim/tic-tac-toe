@@ -45,7 +45,12 @@ function listenToRoom(roomCode) {
     if (!room) return;
     const gameState = room.gameState;
 
-    if (!gameState) return;
+    if (!gameState) {
+      document.querySelector("#playerX").classList.add("active");
+      document.querySelector("#playerO").classList.remove("active");
+      document.querySelector("#playerN").classList.remove("active");
+      return;
+    }
 
     currentp = gameState.currentPlayer || "X";
     currentBoard = gameState.currentBoard ?? undefined;
@@ -168,7 +173,6 @@ function generateRoomCode() {
   return Math.floor(1000 + Math.random() * 9000).toString();
 }
 
-
 document.querySelector("#closeOnline").addEventListener("click", () => {
   document.querySelector("#onlineControls").style.display = "none";
 });
@@ -178,7 +182,7 @@ createRoomBtn.addEventListener("click", async () => {
     const roomCode = generateRoomCode();
     const roomRef = ref(db, `rooms/${roomCode}`);
     const totalPlayers = threePlayerToggle.checked ? 3 : 2;
-g
+
     await set(roomRef, {
       totalPlayers: totalPlayers,
       currentPlayer: "X",
