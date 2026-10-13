@@ -178,7 +178,7 @@ createRoomBtn.addEventListener("click", async () => {
     const roomCode = generateRoomCode();
     const roomRef = ref(db, `rooms/${roomCode}`);
     const totalPlayers = threePlayerToggle.checked ? 3 : 2;
-g
+    
     await set(roomRef, {
       totalPlayers: totalPlayers,
       currentPlayer: "X",
