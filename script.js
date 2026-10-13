@@ -168,12 +168,17 @@ function generateRoomCode() {
   return Math.floor(1000 + Math.random() * 9000).toString();
 }
 
+
+document.querySelector("#closeOnline").addEventListener("click", () => {
+  document.querySelector("#onlineControls").style.display = "none";
+});
+
 createRoomBtn.addEventListener("click", async () => {
   try {
     const roomCode = generateRoomCode();
     const roomRef = ref(db, `rooms/${roomCode}`);
     const totalPlayers = threePlayerToggle.checked ? 3 : 2;
-
+g
     await set(roomRef, {
       totalPlayers: totalPlayers,
       currentPlayer: "X",
@@ -479,6 +484,7 @@ const liveReaction = document.querySelector("#liveReaction");
 
 // Open and close chat
 chatToggle.addEventListener("click", () => {
+  emojiPanel.classList.remove("open");
   if (chatPanel.classList.contains("open")) {
     chatBadge.classList.remove("show");
   }
