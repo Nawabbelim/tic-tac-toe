@@ -194,6 +194,7 @@ createRoomBtn.addEventListener("click", async () => {
     document.querySelector("#playerX").classList.add("active");
     document.querySelector("#playerO").classList.remove("active");
     document.querySelector("#playerN").classList.remove("active");
+       document.querySelector("#emojiPanel").style.display = "grid";
 
     currentRoom = roomCode;
     myPlayer = "X"; // This device controls Player X
@@ -263,6 +264,7 @@ joinRoomBtn.addEventListener("click", async () => {
 
     onlineStatus.textContent = `Joined as Player ${assignedPlayer}!`;
     document.querySelector("#onlineControls").style.display = "none";
+       document.querySelector("#emojiPanel").style.display = "grid";
     document.querySelector(".code").style.display = "block ";
     document.querySelector(".code").textContent =
       `Joined as Player ${assignedPlayer}!`;

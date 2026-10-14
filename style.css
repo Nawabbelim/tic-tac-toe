@@ -378,6 +378,9 @@ h1 {
 }
 #chatToggle {
   position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1001;
 }
 #chatBadge {
   position: absolute;
@@ -618,19 +621,6 @@ h1 {
     text-align: center;
   }
 
-  /*   .code {
-    padding: 2px 5px;
-    width: 50vw;
-    text-wrap: wrap;
-    background: rgba(255, 255, 255, 0.4);
-    min-height: 0;
-    margin: 20px auto;
-    margin-bottom: 0;
-    text-align: center;
-    font-size: clamp(0.5rem, 2vw, 1rem);
-    color: #5b21b6;
-  }
-*/
   h1 {
     font-size: 2rem;
     margin-bottom: 4px;
