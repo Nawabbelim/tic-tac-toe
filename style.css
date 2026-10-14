@@ -177,37 +177,44 @@ h1 {
     box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
   }
 
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 0 12px #c084fc;
+  35% {
+    transform: scale(1.12) translateY(-3px);
+    box-shadow:
+      0 0 12px #c084fc,
+      0 0 22px #7c3aed;
+  }
+
+  65% {
+    transform: scale(1.06);
+    box-shadow: 0 0 16px #ec4899;
   }
 }
 
 .player.main-win-animation {
-  animation: mainWinner 0.9s ease-in-out;
+  position: relative;
+  z-index: 2;
+  animation: mainWinner .9s ease-in-out;
 }
 @keyframes mainWinner {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
-  }
-
-  35% {
-    transform: scale(1.2) translate(-5px);
-    box-shadow:
-      0 0 15px #c084fc,
-      0 0 30px #ec4899;
-  }
-  65% {
-    transform: scale(1.1) translate(-2px);
-    box-shadow:
-      0 0 20px #a855f7,
-      0 0 35px #f472b6;
-  }
-
+  0%,
   100% {
     transform: scale(1);
     box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+  }
+
+  25% {
+    transform: scale(1.15) rotate(-30deg);
+    box-shadow: 0 0 20px #c084fc, 0 0 40px #7c3aed;
+  }
+
+  50% {
+    transform: scale(1.25) rotate(30deg);
+    box-shadow: 0 0 30px #ec4899, 0 0 55px #a855f7;
+  }
+
+  75% {
+    transform: scale(1.1) rotate(-10deg);
+    box-shadow: 0 0 25px #c084fc, 0 0 40px #ec4899;
   }
 }
 
@@ -512,7 +519,6 @@ h1 {
   animation: reactionPop 2s ease-in-out forwards;
 }
 
-
 @keyframes reactionPop {
   0% {
     opacity: 0;
@@ -668,35 +674,193 @@ body:has(#threePlayerToggle:checked) #playerN {
 #onlineControls {
   position: fixed;
   inset: 0;
-  padding: 10px;
+  z-index: 1000;
+  padding: 20px;
+
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: auto auto auto;
-  gap: 10px;
+  gap: 20px;
   justify-items: center;
   align-content: center;
-  background: rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(8px);
-  column-gap: 2px;
+
+  background:
+    radial-gradient(
+      ellipse at 20% 20%,
+      rgba(124, 58, 237, 0.25),
+      transparent 45%
+    ),
+    radial-gradient(
+      ellipse at 80% 80%,
+      rgba(236, 72, 153, 0.2),
+      transparent 45%
+    ),
+    #080b20;
+
+  backdrop-filter: blur(14px);
+  animation: lobbyEnter 0.7s ease-out;
 }
 
+@keyframes lobbyEnter {
+  from {
+    opacity: 0;
+  }
 
+  to {
+    opacity: 1;
+  }
+}
+
+/* Close button */
 #closeOnline {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 38px;
-  height: 38px;
-  border: 1px solid #a78bfa;
-  border-radius: 10px;
-  background: #7c3aed;
+  top: 20px;
+  right: 20px;
+
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.08);
   color: white;
-  font-size: 20px;
+  font-size: 22px;
   cursor: pointer;
+
+  transition: 0.3s ease;
 }
 
+#closeOnline:hover {
+  background: #ec4899;
+  transform: rotate(90deg);
+}
+
+/* Create Room button */
+#createRoom {
+  width: min(320px, 90%);
+  min-height: 100px;
+  padding: 22px;
+
+  border: 1px solid #818cf8;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #312e81, #6d28d9);
+  color: white;
+
+  font-size: clamp(20px, 4vw, 28px);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+
+  box-shadow: 0 0 22px rgba(124, 58, 237, 0.25);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+#createRoom:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 32px rgba(124, 58, 237, 0.65);
+}
+
+/* Join Room layout */
 .join-row {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   justify-content: center;
+  gap: 12px;
+  width: min(380px, 95%);
+}
+
+/* Room code input */
+#roomCode {
+  width: 100%;
+  min-width: 0;
+  padding: 15px 18px;
+
+  border: 1px solid rgba(167, 139, 250, 0.7);
+  border-radius: 14px;
+  outline: none;
+
+  background: rgba(255, 255, 255, 0.07);
+  color: white;
+  font-size: 17px;
+  text-align: center;
+  letter-spacing: 4px;
+
+  transition:
+    border-color 0.75s ease,
+    box-shadow 0.65s ease;
+}
+
+#roomCode::placeholder {
+  color: #a5b4fc;
+  letter-spacing: 1px;
+}
+
+#roomCode:focus {
+  border-color: #c084fc;
+  box-shadow: 0 0 18px rgba(192, 132, 252, 0.3);
+}
+
+/* Join button */
+#joinRoom {
+  width: 100%;
+  min-height: 52px;
+  padding: 14px 22px;
+
+  border: 1px solid #f0abfc;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #db2777, #9333ea);
+  color: white;
+
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+#joinRoom:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 24px rgba(236, 72, 153, 0.5);
+}
+
+/* Lobby status */
+#onlineStatus {
+  margin: 0;
+  color: #c4b5fd;
+  font-size: 15px;
+  text-align: center;
+  animation: statusGlow 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes statusGlow {
+  from {
+    opacity: 0.65;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* Keyboard and touch users */
+#createRoom:active,
+#joinRoom:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #onlineControls,
+  #onlineStatus {
+    animation: none;
+  }
+
+  #createRoom,
+  #joinRoom,
+  #closeOnline {
+    transition: none;
+  }
 }

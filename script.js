@@ -173,10 +173,6 @@ function generateRoomCode() {
   return Math.floor(1000 + Math.random() * 9000).toString();
 }
 
-document.querySelector("#closeOnline").addEventListener("click", () => {
-  document.querySelector("#onlineControls").style.display = "none";
-});
-
 createRoomBtn.addEventListener("click", async () => {
   try {
     const roomCode = generateRoomCode();
@@ -430,7 +426,12 @@ function checkMainWinner() {
       const winnerPlayer = document.querySelector(`#player${a}`);
 
       winnerPlayer.classList.remove("win-main-animation");
+      void winnerPlayer.offsetWidth; // Restart the animation
       winnerPlayer.classList.add("win-main-animation");
+      setTimeout(() => {
+        winnerPlayer.classList.remove("win-main-animation");
+      }, 900);
+
       document.querySelector("#playerX").classList.remove("active");
       document.querySelector("#playerO").classList.remove("active");
       document.querySelector("#playerN").classList.remove("active");
@@ -470,10 +471,16 @@ restartBtn.addEventListener("click", async () => {
   document.querySelector("#playerN").classList.remove("active");
   await saveGameState();
 });
+
 const input = document.querySelector("#onlineControls");
 document.querySelector(".online").addEventListener("click", () => {
   input.style.display = "grid";
   document.querySelector("#playerX").classList.remove("active");
+  document.querySelector("#emojiPanel").style.display = "none";
+});
+document.querySelector("#closeOnline").addEventListener("click", () => {
+  document.querySelector("#onlineControls").style.display = "none";
+  document.querySelector("#emojiPanel").style.display = "grid";
 });
 
 // Get the chat elements
