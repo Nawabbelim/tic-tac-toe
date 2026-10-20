@@ -43,6 +43,24 @@ function listenToRoom(roomCode) {
 
     const room = snapshot.val();
     if (!room) return;
+
+    if (
+      room.lastJoined &&
+      room.lastJoined.createdAt > (window.lastJoinTime || 0)
+    ) {
+      window.lastJoinTime = room.lastJoined.createdAt;
+
+      if (myPlayer !== room.lastJoined.player) {
+        const codeBox = document.querySelector(".code");
+        codeBox.textContent = `Player ${room.lastJoined.player} joined the room!`;
+        codeBox.style.display = "block";
+
+        setTimeout(() => {
+          codeBox.style.display = "none";
+        }, 3000);
+      }
+    }
+
     const gameState = room.gameState;
 
     if (!gameState) {
@@ -179,7 +197,6 @@ createRoomBtn.addEventListener("click", async () => {
     const roomRef = ref(db, `rooms/${roomCode}`);
     const totalPlayers = threePlayerToggle.checked ? 3 : 2;
 
-    
     await set(roomRef, {
       totalPlayers: totalPlayers,
       currentPlayer: "X",
@@ -194,7 +211,6 @@ createRoomBtn.addEventListener("click", async () => {
     document.querySelector("#playerX").classList.add("active");
     document.querySelector("#playerO").classList.remove("active");
     document.querySelector("#playerN").classList.remove("active");
-       document.querySelector("#emojiPanel").style.display = "grid";
 
     currentRoom = roomCode;
     myPlayer = "X"; // This device controls Player X
@@ -219,6 +235,10 @@ const joinRoomBtn = document.querySelector("#joinRoom");
 
 joinRoomBtn.addEventListener("click", async () => {
   const roomCode = roomCodeInput.value.trim();
+  if (currentRoom === roomCode && myPlayer) {
+    onlineStatus.textContent = `Already joined as Player ${myPlayer}!`;
+    return;
+  }
 
   if (!/^\d{4}$/.test(roomCode)) {
     onlineStatus.textContent = "Enter a valid 4-digit room code.";
@@ -257,6 +277,19 @@ joinRoomBtn.addEventListener("click", async () => {
     await set(ref(db, `rooms/${roomCode}/players/${assignedPlayer}`), true); //update in firebase player name
     myPlayer = assignedPlayer; // This device controls O or N
 
+    await set(ref(db, `rooms/${roomCode}/lastJoined`), {
+      player: assignedPlayer,
+      createdAt: Date.now(),
+    });
+
+    await push(ref(db, `rooms/${roomCode}/messages`), {
+      // for displying msg to all (who joined?)
+      player: "System",
+      text: `Player ${assignedPlayer} joined the room!`,
+      createdAt: Date.now(),
+      type: "system",
+    });
+
     listenToRoom(roomCode);
     listenToChat(roomCode);
     reactionListenerStartedAt = Date.now();
@@ -264,7 +297,6 @@ joinRoomBtn.addEventListener("click", async () => {
 
     onlineStatus.textContent = `Joined as Player ${assignedPlayer}!`;
     document.querySelector("#onlineControls").style.display = "none";
-       document.querySelector("#emojiPanel").style.display = "grid";
     document.querySelector(".code").style.display = "block ";
     document.querySelector(".code").textContent =
       `Joined as Player ${assignedPlayer}!`;
@@ -479,11 +511,10 @@ const input = document.querySelector("#onlineControls");
 document.querySelector(".online").addEventListener("click", () => {
   input.style.display = "grid";
   document.querySelector("#playerX").classList.remove("active");
-  document.querySelector("#emojiPanel").style.display = "none";
+  emojiPanel.classList.remove("open");
 });
 document.querySelector("#closeOnline").addEventListener("click", () => {
   document.querySelector("#onlineControls").style.display = "none";
-  document.querySelector("#emojiPanel").style.display = "grid";
 });
 
 // Get the chat elements
