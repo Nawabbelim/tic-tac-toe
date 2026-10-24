@@ -3,194 +3,173 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Tic-Tac-Toe: Ultimate</title>
     <link rel="stylesheet" href="style.css">
+    <!-- NEW: all new UI styles live here, so your old style.css stays untouched -->
+    <link rel="stylesheet" href="style-add.css">
 </head>
 
-<body>
-    <h1>Tic Tac Toe</h1>
-    <div class="mode-toggle">
-        <label class="switch">
-            <input type="checkbox" id="threePlayerToggle">
-            <span class="slider"></span> </label>
-        <span id="em">✌️</span>
-        <span id="em2">🤟</span>
-        <button class="online">Play online</button>
+<!-- data-mode tells CSS which screen we are on: home | offline | online -->
+
+<body data-mode="home">
+
+    <!-- Small popup message (errors, wins, hints) and the falling-money effect -->
+    <div id="toast" role="status"></div>
+    <div id="rain" aria-hidden="true"></div>
+
+    <!-- ============ HOME SCREEN ============ -->
+    <section id="homeScreen" class="home">
+        <header class="h-head">
+            <h1>Tic-Tac-Toe</h1>
+            <p>Challenge your mind. Build your fortune!</p>
+        </header>
+
+        <div class="h-card">
+            <!-- Tap the picture to choose an emoji or upload your own photo -->
+            <button id="avatarBtn" class="avatar big" type="button" aria-label="Change profile picture"></button>
+            <input id="nameInput" type="text" maxlength="16" placeholder="Your name" aria-label="Your name">
+
+            <div class="h-wallet">
+                <p class="h-label">YOUR WALLET</p>
+                <div id="homeNotes" class="notes"></div>
+                <div class="h-bal">₹<span id="homeBalance">0</span></div>
+            </div>
+        </div>
+
+        <div class="h-actions">
+            <button id="playOffline" class="mode m-off" type="button">🎮 Play Offline<span>vs Computer · win
+                    ₹50</span></button>
+            <button id="playOnline" class="mode m-on" type="button">🌐 Play Online<span>Bet your notes with a
+                    friend</span></button>
+        </div>
+    </section>
+
+    <!-- ============ MODAL: difficulty ============ -->
+    <div id="diffModal" class="overlay hide">
+        <div class="m-card">
+            <h2>Choose difficulty</h2>
+            <div class="np-toggle">
+                <button class="np-btn on" data-np="2" type="button">✌️ 2 players</button>
+                <button class="np-btn" data-np="3" type="button">🤟 3 players</button>
+            </div>
+            <button class="d-btn" data-d="easy" type="button">😊 Easy<span>Plays random moves</span></button>
+            <button class="d-btn" data-d="normal" type="button">😏 Normal<span>Tries to win and blocks
+                    you</span></button>
+            <button class="d-btn" data-d="hard" type="button">😈 Hard<span>Thinks ahead, plays to win</span></button>
+            <button id="closeDiff" class="m-close" type="button">Cancel</button>
+        </div>
     </div>
 
-    <span class="code" style="display: none;"></span>
-
-    <div class="container">
-
-        <div id="onlineControls" style="display: none;">
-            
-            <button id="closeOnline">✕</button>
-
-            <button id="createRoom">Create Room</button>
-
-            <div class="join-row">
-                <input type="text" id="roomCode" placeholder="Enter room code" maxlength="4">
-                <button id="joinRoom">Join Room</button>
-            </div>
-
-            <p id="onlineStatus">Play online with a friend!</p>
+    <!-- ============ MODAL: profile picture ============ -->
+    <div id="avatarModal" class="overlay hide">
+        <div class="m-card">
+            <h2>Pick your picture</h2>
+            <div id="avatarGrid" class="av-grid"></div>
+            <label class="d-btn up">📷 Upload a photo
+                <input id="photoInput" type="file" accept="image/*" hidden>
+            </label>
+            <button id="closeAvatar" class="m-close" type="button">Done</button>
         </div>
+    </div>
+
+    <!-- ============ ONLINE LOBBY (create / join) ============ -->
+    <div id="onlineControls" class="hide">
+        <button id="closeOnline" type="button" aria-label="Close">✕</button>
+        <div class="np-toggle">
+            <button class="np-btn on" data-np="2" type="button">✌️ 2 players</button>
+            <button class="np-btn" data-np="3" type="button">🤟 3 players</button>
+        </div>
+        <button id="createRoom" type="button">Create Room</button>
+        <div class="join-row">
+            <input type="text" id="roomCode" inputmode="numeric" placeholder="Enter room code" maxlength="4">
+            <button id="joinRoom" type="button">Join Room</button>
+        </div>
+        <p id="onlineStatus">Play online with a friend!</p>
+    </div>
+
+    <!-- ============ GAME SCREEN ============ -->
+    <section id="gameScreen" class="game-screen">
+
+        <div class="g-top">
+            <button id="homeBtn" class="round-btn" type="button" aria-label="Back to home">🏠</button>
+            <h1>Tic Tac Toe</h1>
+            <div class="chip" title="Your balance">₹<span id="miniBalance">0</span></div>
+        </div>
+        <p id="roomInfo" class="room-info"></p>
 
         <div class="players">
-
-            <div id="playerX" class="player active ">Player:X</div>
-            <div id="playerO" class="player ">Player:O</div>
-            <div id="playerN" class="player ">Player:N</div>
-            <button id="restart">Restart Game</button>
+            <div id="playerX" class="player"><span class="av avatar"></span><span class="pt"><b class="pn"></b><small
+                        class="pb"></small></span><i class="mk">X</i></div>
+            <div id="playerO" class="player"><span class="av avatar"></span><span class="pt"><b class="pn"></b><small
+                        class="pb"></small></span><i class="mk">O</i></div>
+            <div id="playerN" class="player hide"><span class="av avatar"></span><span class="pt"><b
+                        class="pn"></b><small class="pb"></small></span><i class="mk">N</i></div>
         </div>
 
+        <div id="potBar" class="pot hide"></div>
 
-        <!-- Chat toggle button -->
-        <button id="chatToggle">
-            💬 Chat
-            <span id="chatBadge"></span>
-        </button>
+        <div id="boxes" class="boxes"></div>
 
-        <!-- Chat panel -->
+        <h2 id="result"></h2>
+        <button id="playAgain" class="big-btn hide" type="button">🔁 Play again</button>
+
+        <!-- Online-only tools: chat + emoji reactions -->
+        <button id="chatToggle" type="button">💬 Chat<span id="chatBadge"></span></button>
+
         <div id="chatPanel" class="chat-panel">
             <div class="chat-header">
-                <h3>Live Chat</h3>
-                <button id="closeChat">✕</button>
+                <h3>Live Chat</h3><button id="closeChat" type="button">✕</button>
             </div>
-
             <div id="chatMessages" class="chat-messages"></div>
-
             <div class="chat-input">
                 <input type="text" id="chatInput" placeholder="Type a message..." maxlength="300">
-                <button id="sendChat">➤</button>
+                <button id="sendChat" type="button">➤</button>
             </div>
         </div>
 
-        <!-- Emoji reaction panel -->
         <div id="emojiPanel" class="emoji-panel">
-            <button class="emoji-btn">😂</button>
-            <button class="emoji-btn">❤️</button>
-            <button class="emoji-btn">🔥</button>
-            <button class="emoji-btn">👍</button>
-            <button class="emoji-btn">😎</button>
-            <button class="emoji-btn">😮</button>
-            <button class="emoji-btn">😭</button>
-            <button class="emoji-btn">👏</button>
-            <button class="emoji-btn">💀</button>
+            <button class="emoji-btn" type="button">😂</button><button class="emoji-btn" type="button">❤️</button>
+            <button class="emoji-btn" type="button">🔥</button><button class="emoji-btn" type="button">👍</button>
+            <button class="emoji-btn" type="button">😎</button><button class="emoji-btn" type="button">😮</button>
+            <button class="emoji-btn" type="button">😭</button><button class="emoji-btn" type="button">👏</button>
+            <button class="emoji-btn" type="button">💀</button>
         </div>
-
-        <!-- Emoji toggle for phones -->
-        <button id="emojiToggle">😀</button>
-
-
-        <!-- Live reaction overlay -->
+        <button id="emojiToggle" type="button">😀</button>
         <div id="liveReaction"></div>
+    </section>
 
-
-        <div class="boxes">
-            <div class="box" data-board="1">
-                <button class="cell" data-cell="1"></button>
-                <button class="cell" data-cell="2"></button>
-                <button class="cell" data-cell="3"></button>
-                <button class="cell" data-cell="4"></button>
-                <button class="cell" data-cell="5"></button>
-                <button class="cell" data-cell="6"></button>
-                <button class="cell" data-cell="7"></button>
-                <button class="cell" data-cell="8"></button>
-                <button class="cell" data-cell="9"></button>
-            </div>
-            <div class="box" data-board="2">
-                <button class="cell" data-cell="1"></button>
-                <button class="cell" data-cell="2"></button>
-                <button class="cell" data-cell="3"></button>
-                <button class="cell" data-cell="4"></button>
-                <button class="cell" data-cell="5"></button>
-                <button class="cell" data-cell="6"></button>
-                <button class="cell" data-cell="7"></button>
-                <button class="cell" data-cell="8"></button>
-                <button class="cell" data-cell="9"></button>
-            </div>
-            <div class="box" data-board="3">
-                <button class="cell" data-cell="1"></button>
-                <button class="cell" data-cell="2"></button>
-                <button class="cell" data-cell="3"></button>
-                <button class="cell" data-cell="4"></button>
-                <button class="cell" data-cell="5"></button>
-                <button class="cell" data-cell="6"></button>
-                <button class="cell" data-cell="7"></button>
-                <button class="cell" data-cell="8"></button>
-                <button class="cell" data-cell="9"></button>
-            </div>
-            <div class="box" data-board="4">
-                <button class="cell" data-cell="1"></button>
-                <button class="cell" data-cell="2"></button>
-                <button class="cell" data-cell="3"></button>
-                <button class="cell" data-cell="4"></button>
-                <button class="cell" data-cell="5"></button>
-                <button class="cell" data-cell="6"></button>
-                <button class="cell" data-cell="7"></button>
-                <button class="cell" data-cell="8"></button>
-                <button class="cell" data-cell="9"></button>
-            </div>
-            <div class="box" data-board="5">
-                <button class="cell" data-cell="1"></button>
-                <button class="cell" data-cell="2"></button>
-                <button class="cell" data-cell="3"></button>
-                <button class="cell" data-cell="4"></button>
-                <button class="cell" data-cell="5"></button>
-                <button class="cell" data-cell="6"></button>
-                <button class="cell" data-cell="7"></button>
-                <button class="cell" data-cell="8"></button>
-                <button class="cell" data-cell="9"></button>
-            </div>
-            <div class="box" data-board="6">
-                <button class="cell" data-cell="1"></button>
-                <button class="cell" data-cell="2"></button>
-                <button class="cell" data-cell="3"></button>
-                <button class="cell" data-cell="4"></button>
-                <button class="cell" data-cell="5"></button>
-                <button class="cell" data-cell="6"></button>
-                <button class="cell" data-cell="7"></button>
-                <button class="cell" data-cell="8"></button>
-                <button class="cell" data-cell="9"></button>
-            </div>
-            <div class="box" data-board="7">
-                <button class="cell" data-cell="1"></button>
-                <button class="cell" data-cell="2"></button>
-                <button class="cell" data-cell="3"></button>
-                <button class="cell" data-cell="4"></button>
-                <button class="cell" data-cell="5"></button>
-                <button class="cell" data-cell="6"></button>
-                <button class="cell" data-cell="7"></button>
-                <button class="cell" data-cell="8"></button>
-                <button class="cell" data-cell="9"></button>
-            </div>
-            <div class="box" data-board="8">
-                <button class="cell" data-cell="1"></button>
-                <button class="cell" data-cell="2"></button>
-                <button class="cell" data-cell="3"></button>
-                <button class="cell" data-cell="4"></button>
-                <button class="cell" data-cell="5"></button>
-                <button class="cell" data-cell="6"></button>
-                <button class="cell" data-cell="7"></button>
-                <button class="cell" data-cell="8"></button>
-                <button class="cell" data-cell="9"></button>
-            </div>
-            <div class="box" data-board="9">
-                <button class="cell" data-cell="1"></button>
-                <button class="cell" data-cell="2"></button>
-                <button class="cell" data-cell="3"></button>
-                <button class="cell" data-cell="4"></button>
-                <button class="cell" data-cell="5"></button>
-                <button class="cell" data-cell="6"></button>
-                <button class="cell" data-cell="7"></button>
-                <button class="cell" data-cell="8"></button>
-                <button class="cell" data-cell="9"></button>
-            </div>
-
+    <!-- ============ ONLINE: waiting for friend ============ -->
+    <div id="waitBox" class="overlay hide">
+        <div class="b-card">
+            <h2>⏳ Waiting for a friend</h2>
+            <p>Share this room code:</p>
+            <p id="waitInfo"></p>
+            <div class="b-amt" id="waitCode">----</div>
+            <button id="cancelWait" class="m-close" type="button">Cancel</button>
         </div>
-        <h2 id="result"></h2>
+    </div>
+
+    <!-- ============ ONLINE: bargain over the bet ============ -->
+    <div id="bargain" class="overlay hide">
+        <div class="b-card">
+            <h2>🤝 Set the bet</h2>
+            <div class="b-vs"><span id="bvX"></span><span id="bvO"></span><span id="bvN"></span></div>
+            <div id="betNotes" class="notes"></div>
+            <div class="b-amt">₹<span id="betAmt">0</span></div>
+            <p id="betMsg"></p>
+            <div class="b-row">
+                <button id="betLess" type="button">➖ Less</button>
+                <button id="betMore" type="button">➕ More</button>
+                <button id="betNo" type="button">💸 No balance</button>
+            </div>
+            <div class="b-row">
+                <input id="betInput" type="number" min="10" step="10" inputmode="numeric" placeholder="Custom ₹">
+                <button id="betSet" type="button">Propose</button>
+            </div>
+            <button id="betAccept" class="accept" type="button">✅ Accept</button>
+            <button id="leaveBargain" class="m-close" type="button">Leave room</button>
+        </div>
     </div>
 
     <script type="module" src="script.js"></script>
